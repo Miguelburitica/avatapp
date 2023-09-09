@@ -50,16 +50,17 @@ export default defineComponent({
       // Incomes Table
       let incomeTotal = 0
       const incomes = this.conceptItems.list
-        .filter(item => item.type === 'income')
-        .map(item => {
-          const { concept, amount } = item
+        .filter(conceptItem => conceptItem.type === 'income')
+        .map(conceptItem => {
+          const { concept, amount } = conceptItem
           incomeTotal += Number(amount)
           return { Concepto: concept, Monto: amount }
         })
 
+      const incomeList = incomes[0] ? Object.keys(incomes[0]) : []
       const incomesSheet = [
         ['Ingresos'],
-        Object.keys(incomes[0]),
+        incomeList,
         ...incomes.map(item => Object.values(item)),
         ['Subtotal:', incomeTotal]
       ]
@@ -67,23 +68,31 @@ export default defineComponent({
       // Expenses table
       let expenseTotal = 0
       const expenses = this.conceptItems.list
-        .filter(item => item.type === 'expense')
-        .map(item => {
-          const { concept, amount } = item
+        .filter(conceptItem => conceptItem.type === 'expense')
+        .map(conceptItem => {
+          const { concept, amount } = conceptItem
           expenseTotal += Number(amount)
           return { Concepto: concept, Monto: amount }
         })
 
+      const expenseList = expenses[0] ? Object.keys(expenses[0]) : []
       const expensesSheet = [
         ['Gastos'],
-        Object.keys(expenses[0]),
+        expenseList,
         ...expenses.map(item => Object.values(item)),
         ['Subtotal:', expenseTotal],
         ['Total:', expenseTotal + incomeTotal]
       ]
       const worksheet = XLSX.utils.aoa_to_sheet([])
+
+      const merges = [
+        { s: { c: 0, r: 0 }, e: { c: 1, r: 0 } },
+        { s: { c: 3, r: 0 }, e: { c: 4, r: 0 } }
+      ]
+      worksheet['!merges'] = merges
+
       XLSX.utils.sheet_add_aoa(worksheet, expensesSheet, { origin: 'A1' })
-      XLSX.utils.sheet_add_aoa(worksheet, incomesSheet, { origin: 'E1' })
+      XLSX.utils.sheet_add_aoa(worksheet, incomesSheet, { origin: 'D1' })
 
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
